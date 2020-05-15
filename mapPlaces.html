@@ -1,0 +1,216 @@
+<!--
+  Copyright 2019 Google LLC
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Sanik map</title>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <style>
+    /* Always set the map height explicitly to define the size of the div
+     * element that contains the map. */
+    #map {
+      height: 100%;
+      background-color: grey;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #imgVlae
+    {
+      background: url('sanik-vlae-objekt.png') no-repeat 50% 50%;
+      width:100px;
+      height:100px;
+      background-size:100px 80px;
+    }
+    /* TODO: Step 4A1: Make a generic sidebar */
+  </style>
+</head>
+
+<body>
+  <!-- TODO: Step 4A2: Add a generic sidebar -->
+
+  <!-- Map appears here -->
+  <div id="map"></div>
+
+  <script>
+    /* Note: This example requires that you consent to location sharing when
+     * prompted by your browser. If you see the error "Geolocation permission
+     * denied.", it means you probably did not give permission for the browser * to locate you. */
+    let pos;
+    let map;
+    let bounds;
+    let infoWindowVlae;
+    let infoWindowTaftalidze;
+    let infoWindowAerodrom;
+    let currentInfoWindow;
+    let service;
+    let infoPane;
+
+    function initMap() {
+      // Initialize variables
+      bounds = new google.maps.LatLngBounds();
+      infoWindowVlae = new google.maps.InfoWindow;
+      infoWindowTaftalidze = new google.maps.InfoWindow;
+      infoWindowAerodrom = new google.maps.InfoWindow;
+      currentInfoWindow = infoWindowVlae;
+      /* TODO: Step 4A3: Add a generic sidebar */
+      
+       pos = [
+          {
+            lat: 42.012955, 
+            lng: 21.378819
+          },
+          {
+            lat: 42.001476, 
+            lng: 21.381180
+          },
+          {
+            lat: 41.984759, 
+            lng: 21.455680
+          }
+             ]
+          map = new google.maps.Map(document.getElementById('map'), {
+            center: pos[1]
+          });
+          bounds.extend(pos[1]);
+
+          infoWindowVlae.setPosition(pos[0]);
+          infoWindowVlae.setContent('<div id="imgVlae">'+'</div>');
+          infoWindowVlae.open(map);
+            infoWindowTaftalidze.setPosition(pos[1]);
+            infoWindowTaftalidze.setContent('<div id="imgVlae">'+'</div>');
+            infoWindowTaftalidze.open(map);
+                infoWindowAerodrom.setPosition(pos[2]);
+                infoWindowAerodrom.setContent('<div id="imgVlae">'+'</div>');
+                infoWindowAerodrom.open(map);
+          map.setCenter(pos[1]);
+
+         
+          // Ambulanti,Polikliniki
+          getNearbyPlacesHospital(pos[0]);
+          getNearbyPlacesHospital(pos[1]);
+          getNearbyPlacesHospital(pos[2]);
+          //Marketi
+          getNearbyPlacesMarkets(pos[0]);
+          getNearbyPlacesMarkets(pos[1]);
+          getNearbyPlacesMarkets(pos[2]);
+    }
+
+
+
+    // Najdi Ambulanti vo odreden radius
+    function getNearbyPlacesHospital(position) {
+      let request = {
+        location: position,
+        //rankBy: google.maps.places.RankBy.DISTANCE,
+        radius:1000,
+        keyword: 'Hospital,Ambulanta'
+      };
+
+      service = new google.maps.places.PlacesService(map);
+      service.nearbySearch(request, nearbyCallbackHospital);
+    }
+     
+
+
+       // Najdi Ambulanti vo odreden radius
+    function getNearbyPlacesMarkets(position) {
+      let request = {
+        location: position,
+        //rankBy: google.maps.places.RankBy.DISTANCE,
+        radius:1000,
+        keyword: 'Discount supermarket,Supermarket'
+      };
+
+      service = new google.maps.places.PlacesService(map);
+      service.nearbySearch(request, nearbyCallbackMarkets);
+    }
+
+
+
+    // Handle the results (up to 20) of the Nearby Search
+    function nearbyCallbackHospital(results, status) {
+      if (status == google.maps.places.PlacesServiceStatus.OK) {
+        createMarkersHospital(results);
+      }
+    }
+
+     // Handle the results (up to 20) of the Nearby Search
+    function nearbyCallbackMarkets(results, status) {
+      if (status == google.maps.places.PlacesServiceStatus.OK) {
+        createMarkersMarkets(results);
+      }
+    }
+
+
+    /* TODO: Step 3C, Generate markers for search results */
+    // Set markers at the location of each place result
+    function createMarkersHospital(places) {
+      var image = 'hospital_pin.png';
+      places.forEach(place => {
+        let markerHospital = new google.maps.Marker({
+          position: place.geometry.location,
+          map: map,
+          title: place.name,
+          icon: image
+        });
+
+  
+        // Adjust the map bounds to include the location of this marker
+        bounds.extend(place.geometry.location);
+      });
+      /* Once all the markers have been placed, adjust the bounds of the map to
+       * show all the markers within the visible area. */
+      map.fitBounds(bounds);
+    }
+
+
+
+        /* TODO: Step 3C, Generate markers for search results */
+    // Set markers at the location of each place result
+    function createMarkersMarkets(places) {
+      var image = 'supermarket.png';
+      places.forEach(place => {
+        let markerMarkets = new google.maps.Marker({
+          position: place.geometry.location,
+          map: map,
+          title: place.name,
+          icon: image
+        });
+
+  
+        // Adjust the map bounds to include the location of this marker
+        bounds.extend(place.geometry.location);
+      });
+      /* Once all the markers have been placed, adjust the bounds of the map to
+       * show all the markers within the visible area. */
+      map.fitBounds(bounds);
+    }
+
+
+    /* TODO: Step 4C: Show place details in an info window */
+  </script>
+
+  <!-- TODO: Step 3A, Load the Places Library -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZvY5LGY_RWshTSkAe1fWb55TVyNHRv58&libraries=places&callback=initMap">
+  </script>
+</body>
+
+</html>
